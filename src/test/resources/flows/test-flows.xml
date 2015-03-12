@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:dynamicscrm="http://www.mulesoft.org/schema/mule/dynamicscrm" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/dynamicscrm http://www.mulesoft.org/schema/mule/dynamicscrm/current/mule-dynamicscrm.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd">
+    
+    <sub-flow name="createAccountsInDynamicsFlow">
+        <foreach doc:name="For Each">
+            <dynamicscrm:create config-ref="MS_Dynamics_CRM" logicalName="account" doc:name="Insert Accounts"/>
+        </foreach>
+    </sub-flow>
+    
+    <sub-flow name="createAccountsInSalesforceFlow">
+    	<sfdc:create config-ref="Salesforce__Basic_authentication" type="Account" doc:name="Salesforce">
+            <sfdc:objects ref="#[payload]"/>
+        </sfdc:create>
+    </sub-flow>
+    
+    <sub-flow name="retrieveAccountFromSalesforceFlow">
+    	<sfdc:query-single config-ref="Salesforce__Basic_authentication" query="SELECT Id,AccountNumber,AccountSource,AnnualRevenue,BillingCity,BillingCountry,BillingPostalCode,BillingState,BillingStreet,Description,Fax,Industry,LastModifiedDate,Name,NumberOfEmployees,OwnerId,Ownership,ParentId,Phone,Rating,ShippingCity,ShippingCountry,ShippingPostalCode,ShippingState,ShippingStreet,Sic,SicDesc,Site,TickerSymbol,Type,Website FROM Account WHERE Name = '#[payload[&quot;name&quot;]]'" doc:name="Salesforce" />
+    </sub-flow>
+    
+    <sub-flow name="deleteAccountsFromSalesforceFlow" >
+        <sfdc:delete config-ref="Salesforce__Basic_authentication" doc:name="Salesforce">
+            <sfdc:ids ref="#[payload]"/>
+        </sfdc:delete>
+    </sub-flow>
+    <sub-flow name="retrieveAccountFromDynamicsFlow">
+        <dynamicscrm:retrieve-multiple-by-query config-ref="MS_Dynamics_CRM" query="dsql:SELECT accountid,name FROM account where name = '#[payload[&quot;name&quot;]]'" doc:name="Microsoft Dynamics CRM"/>
+    </sub-flow>
+    <sub-flow name="deleteAccountsFromDynamicsFlow">
+        <foreach doc:name="For Each">
+            <dynamicscrm:delete config-ref="MS_Dynamics_CRM"  logicalName="account" doc:name="Microsoft Dynamics CRM"/>
+        </foreach>
+    </sub-flow>
+</mule>

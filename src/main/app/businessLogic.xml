@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      version="EE-3.6.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd">
+    <data-mapper:config name="account_To_Account" transformationGraphPath="account_to_account.grf" doc:name="account_To_Account"/>
+    <batch:job name="broadcastAccountBatch">
+        <batch:process-records>
+            <batch:step name="GetAccountInSalesforce">
+                <enricher source="#[payload]" target="#[recordVars['account']]" doc:name="store account id in 'recordVars['accountId']'">
+                    <sfdc:query-single config-ref="Salesforce__Basic_authentication" query="SELECT Id FROM Account WHERE Name = '#[payload[&quot;name&quot;]]'" doc:name="Query Salesforce for Account"/>
+                </enricher>
+            </batch:step>
+            <batch:step name="MapMSDynamicToSalesforceAccount">
+                <data-mapper:transform config-ref="account_To_Account" doc:name="account To Account"/>
+            </batch:step>
+            <batch:step name="UpsertSalesforceAccounts">
+                <logger message="Account to upsert: #[payload]" level="INFO" doc:name="Logger"/>
+                <expression-component doc:name="prepare for upsert"><![CDATA[if (recordVars['account'] instanceof NullPayload){
+		payload.remove('Id');
+}
+else{
+		payload.put('Id', recordVars['account']['Id']);
+}
+]]></expression-component>
+                <batch:commit size="200" doc:name="Batch Commit">
+                    <sfdc:upsert config-ref="Salesforce__Basic_authentication" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts">
+                        <sfdc:objects ref="#[payload]"/>
+                    </sfdc:upsert>
+                    <logger level="INFO" doc:name="Log the result" message="Salesforce upsert result: #[payload]"/>
+                </batch:commit>
+            </batch:step>
+        </batch:process-records>
+        <batch:on-complete>
+			<json:object-to-json-transformer
+				doc:name="transform BatchJobInstance to JSON" />
+			<logger level="INFO" doc:name="log 'Migration process has finished'"
+				message="Migration process has finished: #[payload]" />
+		</batch:on-complete>
+    </batch:job>
+
+</mule>
