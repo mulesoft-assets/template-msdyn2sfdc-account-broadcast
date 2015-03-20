@@ -20,6 +20,16 @@ Finally during the On Complete stage the Anypoint Template will log output stati
 		<section id="considerations">
 <![CDATA[
 To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source and destination systems, that must be made in order for all to run smoothly. **Failling to do so could lead to unexpected behavior of the template.**
+
+Business logic currently supports custom mapping for Industry attribute of Accounts:
+
+1. Agriculture and Non-petrol Natural Resource Extraction
+2. Consulting
+3. Doctor's Offices and Clinics
+4. Entertainment Retail 
+5. Financial
+ 
+
 ]]>
 		</section>		
 		<section id="run_it">
@@ -37,7 +47,9 @@ Once your app is all set and started, there is no need to do anything else. Ever
 + poll.frequency `5000`
 + poll.delay `0`
 + watermark.default.expression `#[groovy: new java.util.Date()]`
-+ msdyn.offset `3000`
++ msdyn.offset `6000`
+
+**Note**: msdyn.offset is used while polling MS Dynamics for changes. The query time bound might need to be decreased, depending on the your setup, this value in order to catch all data modifications.
 
 ###MS Dynamics Connector configuration###
 
