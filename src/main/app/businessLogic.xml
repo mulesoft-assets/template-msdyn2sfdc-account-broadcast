@@ -22,19 +22,17 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
                     <sfdc:query-single config-ref="Salesforce__Basic_authentication" query="SELECT Id FROM Account WHERE Name = '#[payload[&quot;name&quot;]]'" doc:name="Query Salesforce for Account"/>
                 </enricher>
             </batch:step>
-            <batch:step name="MapMSDynamicToSalesforceAccount">
-                <data-mapper:transform config-ref="account_To_Account" doc:name="account To Account"/>
-            </batch:step>
             <batch:step name="UpsertSalesforceAccounts">
                 <logger message="Account to upsert: #[payload]" level="INFO" doc:name="Logger"/>
-                <expression-component doc:name="prepare for upsert"><![CDATA[if (recordVars['account'] instanceof NullPayload){
+                <batch:commit size="200" doc:name="Batch Commit">
+                    <data-mapper:transform config-ref="account_To_Account" doc:name="account To Account"/>
+                    <expression-component doc:name="prepare for upsert"><![CDATA[if (recordVars['account'] instanceof NullPayload){
 		payload.remove('Id');
 }
 else{
 		payload.put('Id', recordVars['account']['Id']);
 }
 ]]></expression-component>
-                <batch:commit size="200" doc:name="Batch Commit">
                     <sfdc:upsert config-ref="Salesforce__Basic_authentication" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
