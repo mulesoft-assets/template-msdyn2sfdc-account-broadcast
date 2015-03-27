@@ -14,7 +14,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd">
-    <data-mapper:config name="account_To_Account" transformationGraphPath="account_to_account.grf" doc:name="account_To_Account"/>
+    <data-mapper:config name="account_To_List_Account_" transformationGraphPath="account_to_list_account_.grf" doc:name="account_To_List_Account_"/>
     <batch:job name="broadcastAccountBatch">
         <batch:process-records>
             <batch:step name="GetAccountInSalesforce">
@@ -24,19 +24,19 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
             </batch:step>
             <batch:step name="UpsertSalesforceAccounts">
                 <logger message="Account to upsert: #[payload]" level="INFO" doc:name="Logger"/>
-                <batch:commit size="200" doc:name="Batch Commit">
-                    <data-mapper:transform config-ref="account_To_Account" doc:name="account To Account"/>
-                    <expression-component doc:name="prepare for upsert"><![CDATA[if (recordVars['account'] instanceof NullPayload){
+                <expression-component doc:name="prepare for upsert"><![CDATA[if (recordVars['account'] instanceof NullPayload){
 		payload.remove('Id');
 }
 else{
 		payload.put('Id', recordVars['account']['Id']);
 }
 ]]></expression-component>
+                <batch:commit size="200" doc:name="Batch Commit">
+                    <data-mapper:transform config-ref="account_To_List_Account_" doc:name="account To List&lt;Account&gt;"/>
                     <sfdc:upsert config-ref="Salesforce__Basic_authentication" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
-                    <logger level="INFO" doc:name="Log the result" message="Salesforce upsert result: #[payload]"/>
+                    <logger message="Upsert: #[payload]" level="INFO" doc:name="Log the result"/>
                 </batch:commit>
             </batch:step>
         </batch:process-records>
