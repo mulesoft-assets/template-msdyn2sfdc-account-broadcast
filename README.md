@@ -49,6 +49,8 @@ Business logic currently supports custom mapping for Industry attribute of Accou
 3. Doctor's Offices and Clinics
 4. Entertainment Retail 
 5. Financial
+ 
+**Note:** You need to install Java Cryptography Extensions to be able to connect to MS Dynamics. Please [choose](http://www.oracle.com/technetwork/java/javase/downloads/index.html) a relevant version according to your Java installation.
 
 
 
