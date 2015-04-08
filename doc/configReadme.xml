@@ -6,7 +6,7 @@
 	<sections>
 		<section id="use_case">
 This Anypoint Template should serve as a foundation for setting an online sync of accounts from MS Dynamics to Salesforce.
-Everytime there is a new account or a change in an already existing one, the integration will poll for changes from MS Dynamics source instance and it will be responsible for updating the account in Salesforce target instance.
+Every time there is a new account or a change in an already existing one, the integration will poll for changes from MS Dynamics source instance and it will be responsible for updating the account in Salesforce target instance.
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
@@ -39,7 +39,7 @@ See below.
 		</section>
 		<section id="running_on_cloudhub">
 <![CDATA[
-Once your app is all set and started, there is no need to do anything else. Every time a account is created or modified, it will be automatically synchronized to Salesforce by Account Name.
+Once your app is all set and started, there is no need to do anything else. Every time an account is created or modified, it will be automatically synchronized to Salesforce by Account Name.
 ]]>
 		</section>
 		<section id="application_configuration">

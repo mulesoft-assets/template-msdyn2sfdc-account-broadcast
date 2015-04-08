@@ -27,7 +27,7 @@ Please review the terms of the license before downloading and using this templat
 
 # Use Case <a name="usecase"/>
 This Anypoint Template should serve as a foundation for setting an online sync of accounts from MS Dynamics to Salesforce.
-Everytime there is a new account or a change in an already existing one, the integration will poll for changes from MS Dynamics source instance and it will be responsible for updating the account in Salesforce target instance.
+Every time there is a new account or a change in an already existing one, the integration will poll for changes from MS Dynamics source instance and it will be responsible for updating the account in Salesforce target instance.
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
@@ -131,7 +131,7 @@ Complete all properties in one of the property files, for example in [mule.prod.
 
 ## Running on CloudHub <a name="runoncloudhub"/>
 While [creating your application on CloudHub](http://www.mulesoft.org/documentation/display/current/Hello+World+on+CloudHub) (Or you can do it later as a next step), you need to go to Deployment > Advanced to set all environment variables detailed in **Properties to be configured** as well as the **mule.env**.
-Once your app is all set and started, there is no need to do anything else. Every time a account is created or modified, it will be automatically synchronized to Salesforce by Account Name.
+Once your app is all set and started, there is no need to do anything else. Every time an account is created or modified, it will be automatically synchronized to Salesforce by Account Name.
 
 ### Deploying your Anypoint Template on CloudHub <a name="deployingyouranypointtemplateoncloudhub"/>
 Mule Studio provides you with really easy way to deploy your Template directly to CloudHub, for the specific steps to do so please check this [link](http://www.mulesoft.org/documentation/display/current/Deploying+Mule+Applications#DeployingMuleApplications-DeploytoCloudHub)
