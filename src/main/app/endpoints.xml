@@ -17,10 +17,8 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
             <fixed-frequency-scheduler frequency="${poll.frequency}" startDelay="${poll.delay}"/>
             <watermark variable="lastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[payload.modifiedon]"/>
             <processor-chain doc:name="Processor Chain">
-                <set-payload value="#[groovy: new java.util.Date(lastQueryDate.getTime() - ${msdyn.offset}).format(&quot;yyyy-MM-dd'T'HH:mm:ss'Z'&quot;, TimeZone.getTimeZone('UTC'))]" doc:name="format datetime"/>
-                <logger message="Fetching accounts at: #[payload]" level="INFO" doc:name="log the fetching datetime"/>
-                <dynamicscrm:retrieve-multiple-by-query config-ref="MS_Dynamics_CRM" query="dsql:SELECT accountnumber,description,fax,modifiedon,industrycode,name,numberofemployees,revenue,sic,telephone1,tickersymbol,websiteurl FROM account WHERE modifiedon &gt; #[payload] ORDER BY modifiedon ASC" doc:name="query MS Dynamics accounts"/>
-                <expression-filter expression="#[payload.hasNext()]" doc:name="filter empty result set"/>
+                <dynamicscrm:retrieve-multiple-by-query config-ref="MS_Dynamics_CRM" query="dsql:SELECT accountnumber,description,fax,modifiedon,industrycode,name,numberofemployees,revenue,sic,telephone1,tickersymbol,websiteurl FROM account WHERE modifiedon &gt; #[lastQueryDate] ORDER BY modifiedon ASC" doc:name="query MS Dynamics accounts"/>
+                <expression-filter expression="#[payload.size()&gt;0]" doc:name="filter empty result set"/>
             </processor-chain>
         </poll>
         <batch:execute name="broadcastAccountBatch" doc:name="broadcastAccountBatch"/>

@@ -47,10 +47,7 @@ Once your app is all set and started, there is no need to do anything else. Ever
 		<![CDATA[
 + poll.frequency `5000`
 + poll.delay `0`
-+ watermark.default.expression `#[groovy: new java.util.Date()]`
-+ msdyn.offset `6000`
-
-**Note**: msdyn.offset is used while polling MS Dynamics for changes. The query time bound might need to be decreased, depending on the your setup, this value in order to catch all data modifications.
++ watermark.default.expression `2015-04-01T19:40:27Z`
 
 ###MS Dynamics Connector configuration###
 
@@ -87,7 +84,7 @@ This file holds the functional aspect of the Anypoint Template, directed by one 
 Functional aspect of the Anypoint Template is implemented on this XML, directed by one flow that will poll for MS Dynamics creations/updates.
 Several message processors constitute three high level actions that fully implement the logic of this Anypoint Template:
 
-1. Before the Input stage the Anypoint Template will query all the existing accounts from MS Dynamics modified after watermark.
+1. Before the Input stage the Anypoint Template will query all the existing accounts from MS Dynamics modified after the watermark.
 2. During the Process stage, each Account will be filtered depending on, if it has an existing matching account in the Salesforce.
 3. The last step of the Process stage will group the accounts and create/update them in Salesforce.
 Finally during the On Complete stage the Anypoint Template will log output statistics data into the console.
