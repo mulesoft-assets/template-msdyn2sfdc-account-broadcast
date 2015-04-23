@@ -23,7 +23,6 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
                 </enricher>
             </batch:step>
             <batch:step name="UpsertSalesforceAccounts">
-                <logger message="Account to upsert: #[payload]" level="INFO" doc:name="Logger"/>
                 <expression-component doc:name="prepare for upsert"><![CDATA[if (recordVars['account'] instanceof NullPayload){
 		payload.remove('Id');
 }
@@ -36,7 +35,7 @@ else{
                     <sfdc:upsert config-ref="Salesforce__Basic_authentication" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
-                    <logger message="Upsert: #[payload]" level="INFO" doc:name="Log the result"/>
+                    <logger message="Upsert: #[payload]" level="INFO" doc:name="log upsert result"/>
                 </batch:commit>
             </batch:step>
         </batch:process-records>

@@ -16,12 +16,17 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
         <poll doc:name="Poll">
             <fixed-frequency-scheduler frequency="${poll.frequency}" startDelay="${poll.delay}"/>
             <watermark variable="lastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[payload.modifiedon]"/>
-            <processor-chain doc:name="Processor Chain">
                 <dynamicscrm:retrieve-multiple-by-query config-ref="MS_Dynamics_CRM" query="dsql:SELECT accountnumber,description,fax,modifiedon,industrycode,name,numberofemployees,revenue,sic,telephone1,tickersymbol,websiteurl FROM account WHERE modifiedon &gt; #[lastQueryDate] ORDER BY modifiedon ASC" doc:name="query MS Dynamics accounts"/>
-                <expression-filter expression="#[payload.size()&gt;0]" doc:name="filter empty result set"/>
-            </processor-chain>
         </poll>
-        <batch:execute name="broadcastAccountBatch" doc:name="broadcastAccountBatch"/>
+        <choice doc:name="Results non empty">
+            <when expression="#[payload.size()&gt;0]">
+		        <batch:execute name="broadcastAccountBatch" doc:name="broadcastAccountBatch"/>
+            </when>
+            <otherwise>
+                <logger message="No updated accounts found in MS Dynamics. Skipping flow execution." level="INFO" doc:name="No updates found"/>
+            </otherwise>
+        </choice>
+        
         <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Reference Exception Strategy"/>
     </flow>
 
