@@ -14,7 +14,8 @@ As implemented, this Anypoint Template leverage the [Batch Module](http://www.mu
 The batch job is divided in Input, Process and On Complete stages.
 The integration is triggered by a poll defined in the flow that is going to trigger the application, querying newest MS Dynamics updates/creations matching a filter criteria and executing the batch job.
 During the Process stage, each MS Dynamics Account will be filtered depending on, if it has an existing matching Account in Salesforce.
-The last step of the Process stage will group the users and create/update them in Salesforce.
+The last step of the Process stage will group the accounts and create/update them in Salesforce.
+
 Finally during the On Complete stage the Anypoint Template will log output statistics data into the console.
 		</section>		
 		<section id="considerations">
