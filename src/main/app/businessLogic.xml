@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:json="http://www.mulesoft.org/schema/mule/json"
-	xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
       xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
       xmlns:spring="http://www.springframework.org/schema/beans"
-      version="EE-3.6.1"
+      version="EE-3.7.0"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -13,25 +13,42 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
-http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd">
-    <data-mapper:config name="account_To_List_Account_" transformationGraphPath="account_to_list_account_.grf" doc:name="account_To_List_Account_"/>
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
     <batch:job name="broadcastAccountBatch">
         <batch:process-records>
             <batch:step name="GetAccountInSalesforce">
-                <enricher source="#[payload]" target="#[recordVars['account']]" doc:name="store account id in 'recordVars['accountId']'">
-                    <sfdc:query-single config-ref="Salesforce__Basic_authentication" query="SELECT Id FROM Account WHERE Name = '#[payload[&quot;name&quot;]]'" doc:name="Query Salesforce for Account"/>
+                <enricher source="#[payload == null ? null : payload.Id]" target="#[payload['Id']]" doc:name="store account Id to the payload['Id']">
+                    <sfdc:query-single config-ref="Salesforce__Basic_authentication" query="SELECT Id FROM Account WHERE Name = '#[payload[&quot;name&quot;]]'" doc:name="query Salesforce for Account"/>
                 </enricher>
             </batch:step>
             <batch:step name="UpsertSalesforceAccounts">
-                <expression-component doc:name="prepare for upsert"><![CDATA[if (recordVars['account'] instanceof NullPayload){
-		payload.remove('Id');
-}
-else{
-		payload.put('Id', recordVars['account']['Id']);
-}
-]]></expression-component>
+
                 <batch:commit size="200" doc:name="Batch Commit">
-                    <data-mapper:transform config-ref="account_To_List_Account_" doc:name="account To List&lt;Account&gt;"/>
+                    <dw:transform-message doc:name="transform MsDyn Accounts to Sfdc Accounts">
+                        <dw:set-payload><![CDATA[%dw 1.0
+%input payload application/java
+%output application/java
+---
+payload map {
+	TickerSymbol : $.tickersymbol,
+	AccountNumber : $.accountnumber,
+	Name : $.name,
+	Description : $.description,
+	NumberOfEmployees : $.numberofemployees,
+	Fax : $.fax,
+	Sic : $.sic,
+	Phone : $.telephone1,
+	Site : $.websiteurl,
+	AnnualRevenue : ($.revenue as :string) when ($.revenue != null) otherwise null,
+	Industry : "Agriculture" when ($.industrycode == 2) otherwise
+			  ("Consulting" when ($.industrycode == 7) otherwise
+			  ("Healthcare" when ($.industrycode == 11) otherwise
+			  ("Entertainment" when ($.industrycode == 14) otherwise
+			  ("Finance" when ($.industrycode == 16) otherwise null)))),	
+	(Id : $.Id) when ($.Id != null)
+}]]></dw:set-payload>
+                    </dw:transform-message>
+
                     <sfdc:upsert config-ref="Salesforce__Basic_authentication" externalIdFieldName="Id" type="Account" doc:name="upsert Accounts">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
