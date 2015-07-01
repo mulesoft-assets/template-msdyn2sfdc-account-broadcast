@@ -83,6 +83,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 
 	}
 
+	@SuppressWarnings("unused")
 	private void createTestDataInSandBox() throws MuleException, Exception {
 		// Create object in target system to be updated
 		
@@ -127,6 +128,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 		logger.info("Results after adding: " + createdAccountsInDynamics.toString());
 	}
 
+	@SuppressWarnings("unchecked")
 	@After
 	public void tearDown() throws MuleException, Exception {
 		// clean MS Dynamics sandbox
