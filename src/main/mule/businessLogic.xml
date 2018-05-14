@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+
+<flow name="businessLogicFlow" doc:id="8759532e-79b7-4789-990c-dc8e162bfd67" >
+    <batch:job jobName="migrateAccountsBatch" doc:id="204892ae-0d97-4326-beae-310c8d52b7a6">
+        <batch:process-records>
+            <batch:step name="foreachAccountInMsDynamicsGetAccountInSalesforceStep" doc:id="89713774-362a-4e92-9bdc-41e31802bf38">
+					<salesforce:query-single doc:name="Query Salesforce for Account" doc:id="2c89b332-e182-4bb2-8cbc-967b77760e9c" config-ref="Salesforce_Config" target="IDInSfdc">
+						<salesforce:salesforce-query >SELECT Id FROM Account WHERE Name = ':name'</salesforce:salesforce-query>
+						<salesforce:parameters ><![CDATA[#[output applicaton/java
+---
+{
+	"name" : payload.name replace '\'' with '\\\''
+}]]]></salesforce:parameters>
+					</salesforce:query-single>
+					<ee:transform doc:name="Enrich Payload with IDInSfdc" doc:id="2384056e-0146-41c2-b180-224a9c475628" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload ++ vars.IDInSfdc]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+						</ee:variables>
+					</ee:transform>
+            </batch:step>
+            <batch:step name="foreachAccountInMsDynamicsUpsertAccountInSalesforceStep" doc:id="78a74ab4-9b91-416d-985a-acda2ac377eb">
+                <batch:aggregator doc:name="Batch Aggregator" doc:id="1ad86a98-643e-494a-a90a-32daab0b03cc" size="${page.size}">
+                    <ee:transform doc:name="Transform MsDynamics Accounts to Salesforce Accounts" doc:id="9c24bf81-e7a3-452d-b129-6548fcb03b0f" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	TickerSymbol : $.tickersymbol,
+	AccountNumber : $.accountnumber,
+	Name : $.name,
+	Description : $.description,
+	NumberOfEmployees : $.numberofemployees,
+	Fax : $.fax,
+	Sic : $.sic,
+	Phone : $.telephone1,
+	Site : $.websiteurl,
+	AnnualRevenue : if ($.revenue != null) ($.revenue as String) else null,
+	Industry : if ($.industrycode == 2) "Agriculture" else
+			  (if ($.industrycode == 7) "Consulting" else
+			  (if ($.industrycode == 11) "Healthcare" else
+			  (if ($.industrycode == 14) "Entertainment" else
+			  (if ($.industrycode == 16) "Finance" else null)))),	
+	(Id : $.Id) if ($.Id != null)
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<salesforce:upsert type="Account" doc:name="Upsert Accounts" doc:id="f94fb281-28ce-48c8-86ef-6f97d9d98fea" config-ref="Salesforce_Config" externalIdFieldName="Id"/>
+						<logger level="INFO" doc:name="Log upsert result" doc:id="7236a9f6-7aaf-4f40-94e3-e477a132e88d" message="Upsert result: #[output application/json --- payload]"/>
+                </batch:aggregator>
+            </batch:step>
+        </batch:process-records>
+        <batch:on-complete>
+            <ee:transform doc:name="Prepare migration result" doc:id="c84b4bc4-5a65-41c1-9d0c-f1ebd3d8db7a">
+                <ee:message>
+                    <ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+"Migration Report: \n"
+
+++ "\n Time [milliseconds]: " 		++ payload.elapsedTimeInMillis
+++ "\n Total Records: "				++ payload.totalRecords
+++ "\n Successful Records: "		++ payload.successfulRecords
+++ "\n Failed Records: "			++ payload.failedRecords
+++ "\n Loaded Records: "			++ payload.loadedRecords
+++ "\n Processed Records: " 		++ payload.processedRecords]]></ee:set-payload>
+                </ee:message>
+            </ee:transform>
+            <logger level="INFO" doc:name="Migration process has finished!" doc:id="b7575d38-7dbd-4602-9186-1bbb25234896" message="Migration process has finished: #[payload]" />
+
+        </batch:on-complete>
+
+    </batch:job>
+</flow>
+
+</mule>
+
+
+        
