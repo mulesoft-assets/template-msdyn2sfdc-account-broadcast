@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "artifactCoordinates": {
+    "groupId": "org.mule.templates",
+    "artifactId": "template-msdyn2sfdc-account-broadcast",
+    "version": "2.1.0-SNAPSHOT",
+    "type": "jar",
+    "classifier": "mule-application"
+  },
+  "dependencies": [
+    {
+      "artifactCoordinates": {
+        "groupId": "com.mulesoft.connectors",
+        "artifactId": "mule-salesforce-connector",
+        "version": "9.3.0",
+        "type": "jar",
+        "classifier": "mule-plugin"
+      },
+      "uri": "repository/com/mulesoft/connectors/mule-salesforce-connector/9.3.0/mule-salesforce-connector-9.3.0-mule-plugin.jar"
+    },
+    {
+      "artifactCoordinates": {
+        "groupId": "org.mule.connectors",
+        "artifactId": "mule-objectstore-connector",
+        "version": "1.1.1",
+        "type": "jar",
+        "classifier": "mule-plugin"
+      },
+      "uri": "repository/org/mule/connectors/mule-objectstore-connector/1.1.1/mule-objectstore-connector-1.1.1-mule-plugin.jar"
+    },
+    {
+      "artifactCoordinates": {
+        "groupId": "com.mulesoft.connectors",
+        "artifactId": "mule-microsoft-dynamics-crm-connector",
+        "version": "3.0.0",
+        "type": "jar",
+        "classifier": "mule-plugin"
+      },
+      "uri": "repository/com/mulesoft/connectors/mule-microsoft-dynamics-crm-connector/3.0.0/mule-microsoft-dynamics-crm-connector-3.0.0-mule-plugin.jar"
+    }
+  ]
+}

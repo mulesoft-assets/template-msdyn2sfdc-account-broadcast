@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<configuration>
+	<placeholders>
+		<placeholder id="template_name">MS Dynamics to Salesforce Account Broadcast</placeholder>
+	</placeholders>
+	<sections>
+		<section id="use_case">
+This Anypoint Template should serve as a foundation for setting an online migration of accounts from MS Dynamics to Salesforce.
+Every time there is a new account or a change in an already existing one, the integration will poll for changes from MS Dynamics source instance and it will be responsible for updating the account in Salesforce target instance.
+
+Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
+
+As implemented, this Anypoint Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
+The batch job is divided in *Process* and *On Complete* stages.
+The integration is triggered by a Scheduler defined in the flow that is going to trigger the application, querying newest MS Dynamics updates/creations matching a filter criteria and executing the batch job.
+During the *Process* stage, each MS Dynamics Account will be filtered depending on, if it has an existing matching Account in Salesforce.
+The last step of the *Process* stage will group the accounts and create/update them in Salesforce.
+
+Finally during the *On Complete* stage the Anypoint Template will log output statistics data into the console.
+		</section>		
+		<section id="considerations">
+<![CDATA[
+To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source and destination systems, that must be made in order for all to run smoothly. **Failing to do so could lead to unexpected behavior of the template.**
+
+Business logic currently supports custom mapping for Industry attribute of Accounts:
+
+1. Agriculture and Non-petrol Natural Resource Extraction
+2. Consulting
+3. Doctor's Offices and Clinics
+4. Entertainment Retail 
+5. Financial
+ 
+**Note:** You need to install Java Cryptography Extensions to be able to connect to MS Dynamics. Please [choose](http://www.oracle.com/technetwork/java/javase/downloads/index.html) a relevant version according to your Java installation.
+ 
+]]>
+		</section>		
+		<section id="application_configuration">
+		<![CDATA[
+**Batch Aggregator Configuration**
++ page.size `200`
+
+**Scheduler configuration**
++ scheduler.frequency `10000`
++ scheduler.start.delay `100`
+
+**Watermarking default last query timestamp e.g. 2016-12-13T03:00:59Z**
++ watermark.default.expression `2015-04-01T19:40:27Z`
+
+**MS Dynamics Connector configuration**
++ msdyn.user `msdyn_user`
++ msdyn.password `msdyn_password`
++ msdyn.url `https://{your MS Dynamics url}`
++ msdyn.retries `5`
+
+**Salesforce Connector configuration**
++ sfdc.username `joan.baez@orgb`
++ sfdc.password `JoanBaez456`
++ sfdc.securityToken `ces56arl7apQs56XTddf34X`
+
+]]>
+		</section>
+		<section id="api_calls">
+		<![CDATA[
+Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. The Anypoint Template calls to the API can be calculated using the formula:
+
+***1 + X + X / ${page.size}***
+
+Being ***X*** the number of Accounts to be synchronized on each run. 
+
+The division by ***${page.size}*** is because, by default, Accounts are gathered in groups of ${page.size} for each Upsert API Call in the commit step.	
+
+For instance if 10 records are fetched from origin instance, then 12 api calls will be made (1 + 10 + 1).
+]]>
+		</section>
+		<section id="default_business_logic_xml">
+		<![CDATA[
+This file holds the functional aspect of the Anypoint Template, directed by one flow responsible of conducting the business logic.
+
+Functional aspect of the Anypoint Template is implemented on this XML, directed by one flow that will poll for MS Dynamics creations/updates.
+Several message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
+
+1. Firstly the Template will query for all the existing accounts from MS Dynamics modified after the watermark.
+2. During the *Process* stage, each Account will be filtered depending on, if it has an existing matching account in the Salesforce.
+3. The last step of the *Process* stage will group the accounts and create/update them in Salesforce.
+4. Finally during the *On Complete* stage the Anypoint Template will log output statistics data into the console.
+]]>
+		</section>
+		<section id="default_endpoints_xml">
+		<![CDATA[
+This is file is conformed by a Flow containing the Scheduler that will periodically query MS Dynamics for updated/created Accounts that meet the defined criteria in the query. And then executing the batch job process with the query results follows.
+]]>
+		</section>
+	</sections>
+</configuration>
