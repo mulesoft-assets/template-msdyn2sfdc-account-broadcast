@@ -3,7 +3,7 @@
   "artifactCoordinates": {
     "groupId": "org.mule.templates",
     "artifactId": "template-msdyn2sfdc-account-broadcast",
-    "version": "2.1.0-SNAPSHOT",
+    "version": "2.1.1-SNAPSHOT",
     "type": "jar",
     "classifier": "mule-application"
   },
