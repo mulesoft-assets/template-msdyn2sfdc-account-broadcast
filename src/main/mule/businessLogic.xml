@@ -60,7 +60,6 @@ payload map {
 							</ee:message>
 						</ee:transform>
 						<salesforce:upsert type="Account" doc:name="Upsert Accounts" doc:id="f94fb281-28ce-48c8-86ef-6f97d9d98fea" config-ref="Salesforce_Config" externalIdFieldName="Id"/>
-						<logger level="INFO" doc:name="Log upsert result" doc:id="7236a9f6-7aaf-4f40-94e3-e477a132e88d" message="Upsert result: #[output application/json --- payload]"/>
                 </batch:aggregator>
             </batch:step>
         </batch:process-records>
